@@ -70,64 +70,57 @@ void afficherEtudiants() {
     fclose(f);
 }
 /* Fonction pour trier et afficher les étudiants par classe */
+int comparerClasses(const void *a, const void *b) {
+    Etudiant *e1 = (Etudiant *)a;
+    Etudiant *e2 = (Etudiant *)b;
+    return strcmp(e1->classe, e2->classe);
+}
+
+int comparerClasse(const void *a, const void *b) {
+    const Etudiant *e1 = (const Etudiant *)a;
+    const Etudiant *e2 = (const Etudiant *)b;
+    return strcmp(e1->classe, e2->classe);
+}
+
 void trierEtudiants() {
-    /* Ouverture du fichier en mode lecture */
     FILE *f = fopen(FICHIER, "r");
-    
-    /* Vérification si le fichier s'est ouvert correctement */
     if (!f) {
-        printf("Aucun etudiant enregistre.\n");
+        printf("Erreur : impossible d'ouvrir le fichier.\n");
         return;
     }
 
-    /* Comptage du nombre d'étudiants dans le fichier */
+    // Lecture dynamique dans un tableau
+    Etudiant etudiants[1000]; // On suppose un max de 1000 étudiants
     int count = 0;
-    char buffer[256];  // Buffer pour lire chaque ligne
-    while (fgets(buffer, sizeof(buffer), f)) {
+
+    while (fscanf(f, "%d;%49[^;];%49[^;];%49[^\n]\n",
+                  &etudiants[count].id,
+                  etudiants[count].nom,
+                  etudiants[count].prenom,
+                  etudiants[count].classe) == 4) {
         count++;
     }
-    
-    /* Retour au début du fichier pour relire les données */
-    rewind(f);
-
-    /* Allocation dynamique de mémoire pour le tableau d'étudiants */
-    Etudiant *etudiants = malloc(count * sizeof(Etudiant));
-    
-    /* Lecture des données depuis le fichier */
-    for (int i = 0; i < count; i++) {
-        /* Format d'entrée : ID;Nom;Prénom;Classe */
-        fscanf(f, "%d;%49[^;];%49[^;];%49[^\n]\n", 
-               &etudiants[i].id,      // Lecture de l'ID
-               etudiants[i].nom,      // Lecture du nom
-               etudiants[i].prenom,   // Lecture du prénom
-               etudiants[i].classe);   // Lecture de la classe
-    }
-    
-    /* Fermeture du fichier */
     fclose(f);
 
-    /* Tri du tableau avec qsort */
-    qsort(etudiants,          // Pointeur vers le tableau
-          count,              // Nombre d'éléments
-          sizeof(Etudiant),   // Taille d'un élément
-          comparerClasses);   // Fonction de comparaison
-
-    /* Affichage des résultats triés */
-    printf("\nEtudiants tries par classe:\n");
-    printf("ID\tNom\t\tPrenom\t\tClasse\n");
-    printf("----------------------------------------\n");
-    
-    for (int i = 0; i < count; i++) {
-        printf("%d\t%s\t\t%s\t\t%s\n", 
-               etudiants[i].id, 
-               etudiants[i].nom, 
-               etudiants[i].prenom, 
-               etudiants[i].classe);
+    if (count == 0) {
+        printf("Aucun étudiant trouvé.\n");
+        return;
     }
 
-    /* Libération de la mémoire allouée */
-    free(etudiants);
-}
+    // Tri par classe
+    qsort(etudiants, count, sizeof(Etudiant), comparerClasse);
+
+    // Affichage
+    printf("\n=== Étudiants triés par classe ===\n");
+    printf("ID\tNom\t\tPrenom\t\tClasse\n");
+    printf("--------------------------------------------\n");
+    for (int i = 0; i < count; i++) {
+        printf("%d\t%s\t\t%s\t\t%s\n",
+               etudiants[i].id,
+               etudiants[i].nom,
+               etudiants[i].prenom,
+               etudiants[i].classe);
+    }
 //menu
 void menu(){
     int choix;
